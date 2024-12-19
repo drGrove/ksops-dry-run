@@ -71,12 +71,15 @@ func mainCmd() error {
 	//
 	// The original ksops plugin is located in the following ways
 	// - Using ${KSOPS_PATH} verbatim.
+	// - Using ${KUSTOMIZE_PLUGIN_HOME}/kustomize/plugin/viaduct.ai/v1/ksops/_ksops.
 	// - Using ${XDG_CONFIG_HOME}/kustomize/plugin/viaduct.ai/v1/ksops/_ksops.
 	// - Using ${HOME}/.config/kustomize/plugin/viaduct.ai/v1/ksops/_ksops.
 	if value, found := os.LookupEnv("KSOPS_DRY_RUN"); !found {
 		var ksopsPath string
 		if path := os.Getenv("KSOPS_PATH"); path != "" {
 			ksopsPath = path
+		} else if path := os.Getenv("KUSTOMIZE_PLUGIN_HOME"); path != "" {
+			ksopsPath = filepath.Join(path, "viaduct.ai/v1/ksops/_ksops")
 		} else if path := os.Getenv("XDG_CONFIG_HOME"); path != "" {
 			ksopsPath = filepath.Join(path, "kustomize/plugin/viaduct.ai/v1/ksops/_ksops")
 		} else if path := os.Getenv("HOME"); path != "" {
