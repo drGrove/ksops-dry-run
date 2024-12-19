@@ -49,6 +49,7 @@ type ksopsGeneratorConfig struct {
 // version is used to hold the version string. Is replaced at go build time
 // with -ldflags.
 var version = "development"
+var placeholder = "KSOPS_DRY_RUN_PLACEHOLDER"
 
 func main() {
 	if err := mainCmd(); err != nil {
@@ -72,7 +73,7 @@ func mainCmd() error {
 	// - Using ${KSOPS_PATH} verbatim.
 	// - Using ${XDG_CONFIG_HOME}/kustomize/plugin/viaduct.ai/v1/ksops/_ksops.
 	// - Using ${HOME}/.config/kustomize/plugin/viaduct.ai/v1/ksops/_ksops.
-	if _, found := os.LookupEnv("KSOPS_DRY_RUN"); !found {
+	if value, found := os.LookupEnv("KSOPS_DRY_RUN"); !found {
 		var ksopsPath string
 		if path := os.Getenv("KSOPS_PATH"); path != "" {
 			ksopsPath = path
@@ -87,6 +88,10 @@ func mainCmd() error {
 		// Exec the original ksops plugin. If successful, this function call
 		// will never return.
 		return syscall.Exec(ksopsPath, os.Args, os.Environ())
+	} else {
+		if len(value) != 0 {
+			placeholder = value
+		}
 	}
 
 	// We now know that the user wanted to use ksops-dry-run, so act like a
@@ -212,7 +217,7 @@ func parseKsopsEncryptedSecrets(filename string) ([]secret, error) {
 			case "": // Preserve the value if it is an empty string.
 				secret.StringData[key] = ""
 			default:
-				secret.StringData[key] = "KSOPS_DRY_RUN_PLACEHOLDER"
+				secret.StringData[key] = placeholder
 			}
 		}
 		for key, value := range secret.Data {
@@ -220,7 +225,7 @@ func parseKsopsEncryptedSecrets(filename string) ([]secret, error) {
 			case "": // Preserve the value if it is an empty string.
 				secret.StringData[key] = ""
 			default:
-				secret.StringData[key] = "KSOPS_DRY_RUN_PLACEHOLDER"
+				secret.StringData[key] = placeholder
 			}
 		}
 		secret.Data = nil
